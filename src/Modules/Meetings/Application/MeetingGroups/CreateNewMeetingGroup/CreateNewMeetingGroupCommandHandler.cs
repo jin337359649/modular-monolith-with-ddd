@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Processing;
+using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Commands;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroupProposals;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups;
 using MediatR;
@@ -13,7 +13,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Application.MeetingGroups.Crea
         private readonly IMeetingGroupProposalRepository _meetingGroupProposalRepository;
 
         internal CreateNewMeetingGroupCommandHandler(
-            IMeetingGroupRepository meetingGroupRepository, 
+            IMeetingGroupRepository meetingGroupRepository,
             IMeetingGroupProposalRepository meetingGroupProposalRepository)
         {
             _meetingGroupRepository = meetingGroupRepository;

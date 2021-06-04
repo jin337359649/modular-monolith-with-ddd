@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Processing;
+using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Commands;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Members;
@@ -15,8 +15,8 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Application.Meetings.AddMeetin
         private readonly IMeetingGroupRepository _meetingGroupRepository;
 
         public AddMeetingAttendeeCommandHandler(
-            IMemberContext memberContext, 
-            IMeetingRepository meetingRepository, 
+            IMemberContext memberContext,
+            IMeetingRepository meetingRepository,
             IMeetingGroupRepository meetingGroupRepository)
         {
             _memberContext = memberContext;
@@ -27,7 +27,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Application.Meetings.AddMeetin
         public async Task<Unit> Handle(AddMeetingAttendeeCommand request, CancellationToken cancellationToken)
         {
             var meeting = await _meetingRepository.GetByIdAsync(new MeetingId(request.MeetingId));
-            
+
             var meetingGroup = await _meetingGroupRepository.GetByIdAsync(meeting.GetMeetingGroupId());
 
             meeting.AddAttendee(meetingGroup, _memberContext.MemberId, request.GuestsNumber);

@@ -8,12 +8,21 @@ namespace CompanyName.MyMeetings.BuildingBlocks.Domain
 
         protected TypedIdValueBase(Guid value)
         {
+            if (value == Guid.Empty)
+            {
+                throw new InvalidOperationException("Id value cannot be empty!");
+            }
+
             Value = value;
         }
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
             return obj is TypedIdValueBase other && Equals(other);
         }
 
@@ -24,7 +33,7 @@ namespace CompanyName.MyMeetings.BuildingBlocks.Domain
 
         public bool Equals(TypedIdValueBase other)
         {
-            return this.Value == other.Value;
+            return this.Value == other?.Value;
         }
 
         public static bool operator ==(TypedIdValueBase obj1, TypedIdValueBase obj2)
@@ -35,11 +44,14 @@ namespace CompanyName.MyMeetings.BuildingBlocks.Domain
                 {
                     return true;
                 }
+
                 return false;
             }
+
             return obj1.Equals(obj2);
         }
-        public static bool operator !=(TypedIdValueBase x, TypedIdValueBase y) 
+
+        public static bool operator !=(TypedIdValueBase x, TypedIdValueBase y)
         {
             return !(x == y);
         }

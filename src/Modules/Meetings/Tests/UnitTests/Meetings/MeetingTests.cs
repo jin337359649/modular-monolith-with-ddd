@@ -18,13 +18,13 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.Meetings
             var meetingTestData = CreateMeetingTestData(new MeetingTestDataOptions
             {
                 CreatorId = creatorId,
-                MeetingTerm = new MeetingTerm(DateTime.UtcNow.AddDays(-2), DateTime.UtcNow.AddDays(-1))
+                MeetingTerm = MeetingTerm.CreateNewBetweenDates(DateTime.UtcNow.AddDays(-2), DateTime.UtcNow.AddDays(-1))
             });
 
             AssertBrokenRule<MeetingCannotBeChangedAfterStartRule>(() =>
             {
                 meetingTestData.Meeting.Cancel(creatorId);
-            }); 
+            });
         }
 
         [Test]
@@ -43,7 +43,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.Meetings
             var meetingCanceled = AssertPublishedDomainEvent<MeetingCanceledDomainEvent>(meetingTestData.Meeting);
             Assert.That(meetingCanceled.MeetingId, Is.EqualTo(meetingTestData.Meeting.Id));
             Assert.That(meetingCanceled.CancelMemberId, Is.EqualTo(creatorId));
-            Assert.That(meetingCanceled.CancelDate, Is.EqualTo(date));           
+            Assert.That(meetingCanceled.CancelDate, Is.EqualTo(date));
         }
 
         [Test]
@@ -53,13 +53,13 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.Meetings
             var meetingTestData = CreateMeetingTestData(new MeetingTestDataOptions
             {
                 CreatorId = creatorId,
-                MeetingTerm = new MeetingTerm(DateTime.UtcNow.AddDays(-2), DateTime.UtcNow.AddDays(-1))
+                MeetingTerm = MeetingTerm.CreateNewBetweenDates(DateTime.UtcNow.AddDays(-2), DateTime.UtcNow.AddDays(-1))
             });
 
             AssertBrokenRule<MeetingCannotBeChangedAfterStartRule>(() =>
             {
                 meetingTestData.Meeting.RemoveAttendee(new MemberId(Guid.NewGuid()), creatorId, null);
-            }); 
+            });
         }
 
         [Test]
@@ -75,7 +75,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.Meetings
             AssertBrokenRule<OnlyActiveAttendeeCanBeRemovedFromMeetingRule>(() =>
             {
                 meetingTestData.Meeting.RemoveAttendee(attendeeToRemoveId, creatorId, null);
-            }); 
+            });
         }
 
         [Test]

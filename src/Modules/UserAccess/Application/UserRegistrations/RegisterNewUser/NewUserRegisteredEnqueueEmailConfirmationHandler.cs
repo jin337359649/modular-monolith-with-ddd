@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.Configuration.Processing.InternalCommands;
+using CompanyName.MyMeetings.Modules.UserAccess.Application.Configuration.Commands;
 using CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistrations.SendUserRegistrationConfirmationEmail;
 using MediatR;
 
@@ -21,7 +21,8 @@ namespace CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistration
             await _commandsScheduler.EnqueueAsync(new SendUserRegistrationConfirmationEmailCommand(
                 Guid.NewGuid(),
                 notification.DomainEvent.UserRegistrationId,
-                notification.DomainEvent.Email));
+                notification.DomainEvent.Email,
+                notification.DomainEvent.ConfirmLink));
         }
     }
 }

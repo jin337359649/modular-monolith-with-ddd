@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using CompanyName.MyMeetings.BuildingBlocks.Domain;
+using CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingCommentingConfigurations;
+using CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingComments;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings.Events;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings.Rules;
@@ -30,9 +32,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
 
         private List<MeetingWaitlistMember> _waitlistMembers;
 
-        private int? _attendeesLimit;
-
-        private int _guestsLimit;
+        private MeetingLimits _meetingLimits;
 
         private Term _rsvpTerm;
 
@@ -59,15 +59,39 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
             _waitlistMembers = new List<MeetingWaitlistMember>();
         }
 
-        internal Meeting(
+        internal static Meeting CreateNew(
             MeetingGroupId meetingGroupId,
-            string title, 
-            MeetingTerm term, 
-            string description, 
-            MeetingLocation location, 
-            int? attendeesLimit, 
-            int guestsLimit, 
-            Term rsvpTerm, 
+            string title,
+            MeetingTerm term,
+            string description,
+            MeetingLocation location,
+            MeetingLimits meetingLimits,
+            Term rsvpTerm,
+            MoneyValue eventFee,
+            List<MemberId> hostsMembersIds,
+            MemberId creatorId)
+        {
+            return new Meeting(
+                meetingGroupId,
+                title,
+                term,
+                description,
+                location,
+                meetingLimits,
+                rsvpTerm,
+                eventFee,
+                hostsMembersIds,
+                creatorId);
+        }
+
+        private Meeting(
+            MeetingGroupId meetingGroupId,
+            string title,
+            MeetingTerm term,
+            string description,
+            MeetingLocation location,
+            MeetingLimits meetingLimits,
+            Term rsvpTerm,
             MoneyValue eventFee,
             List<MemberId> hostsMembersIds,
             MemberId creatorId)
@@ -78,8 +102,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
             _term = term;
             _description = description;
             _location = location;
-            _attendeesLimit = attendeesLimit;
-            _guestsLimit = guestsLimit;
+            _meetingLimits = meetingLimits;
 
             this.SetRsvpTerm(rsvpTerm, _term);
             _eventFee = eventFee;
@@ -96,38 +119,34 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
             {
                 foreach (var hostMemberId in hostsMembersIds)
                 {
-                    _attendees.Add(new MeetingAttendee(this.Id, hostMemberId, rsvpDate, MeetingAttendeeRole.Host, 0, MoneyValue.Zero));                    
+                    _attendees.Add(MeetingAttendee.CreateNew(this.Id, hostMemberId, rsvpDate, MeetingAttendeeRole.Host, 0, MoneyValue.Undefined));
                 }
             }
             else
             {
-                _attendees.Add(new MeetingAttendee(this.Id, creatorId, rsvpDate, MeetingAttendeeRole.Host, 0, MoneyValue.Zero));
+                _attendees.Add(MeetingAttendee.CreateNew(this.Id, creatorId, rsvpDate, MeetingAttendeeRole.Host, 0, MoneyValue.Undefined));
             }
         }
-
-
 
         public void ChangeMainAttributes(
             string title,
             MeetingTerm term,
             string description,
             MeetingLocation location,
-            int? attendeesLimit,
-            int guestsLimit,
+            MeetingLimits meetingLimits,
             Term rsvpTerm,
             MoneyValue eventFee,
             MemberId modifyUserId)
         {
-            base.CheckRule(new AttendeesLimitCannotBeChangedToSmallerThanActiveAttendeesRule(
-                attendeesLimit, 
+            this.CheckRule(new AttendeesLimitCannotBeChangedToSmallerThanActiveAttendeesRule(
+                meetingLimits,
                 this.GetAllActiveAttendeesWithGuestsNumber()));
 
             _title = title;
             _term = term;
             _description = description;
             _location = location;
-            _attendeesLimit = attendeesLimit;
-            _guestsLimit = guestsLimit;
+            _meetingLimits = meetingLimits;
             this.SetRsvpTerm(rsvpTerm, _term);
             _eventFee = eventFee;
 
@@ -147,17 +166,18 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
 
             this.CheckRule(new MemberCannotBeAnAttendeeOfMeetingMoreThanOnceRule(attendeeId, _attendees));
 
-            this.CheckRule(new MeetingGuestsNumberIsAboveLimitRule(_guestsLimit, guestsNumber));
-            
-            this.CheckRule(new MeetingAttendeesNumberIsAboveLimitRule(_attendeesLimit, this.GetAllActiveAttendeesWithGuestsNumber(), guestsNumber));
+            this.CheckRule(new MeetingGuestsNumberIsAboveLimitRule(_meetingLimits.GuestsLimit, guestsNumber));
+
+            this.CheckRule(new MeetingAttendeesNumberIsAboveLimitRule(_meetingLimits.AttendeesLimit, this.GetAllActiveAttendeesWithGuestsNumber(), guestsNumber));
 
             var notAttendee = this.GetActiveNotAttendee(attendeeId);
             notAttendee?.ChangeDecision();
 
-            _attendees.Add(new MeetingAttendee(
-                this.Id, attendeeId, 
-                SystemClock.Now, 
-                MeetingAttendeeRole.Attendee, 
+            _attendees.Add(MeetingAttendee.CreateNew(
+                this.Id,
+                attendeeId,
+                SystemClock.Now,
+                MeetingAttendeeRole.Attendee,
                 guestsNumber,
                 _eventFee));
         }
@@ -168,27 +188,27 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
 
             this.CheckRule(new MemberCannotBeNotAttendeeTwiceRule(_notAttendees, memberId));
 
-            _notAttendees.Add(new MeetingNotAttendee(this.Id, memberId));
+            _notAttendees.Add(MeetingNotAttendee.CreateNew(this.Id, memberId));
 
             var attendee = this.GetActiveAttendee(memberId);
 
             attendee?.ChangeDecision();
-            
+
             var nextWaitlistMember = _waitlistMembers
                 .Where(x => x.IsActive())
                 .OrderBy(x => x.SignUpDate)
                 .FirstOrDefault();
             if (nextWaitlistMember != null)
             {
-                _attendees.Add(new MeetingAttendee(
-                    this.Id, 
-                    nextWaitlistMember.MemberId, 
-                    nextWaitlistMember.SignUpDate, 
-                    MeetingAttendeeRole.Attendee, 
-                    0, 
+                _attendees.Add(MeetingAttendee.CreateNew(
+                    this.Id,
+                    nextWaitlistMember.MemberId,
+                    nextWaitlistMember.SignUpDate,
+                    MeetingAttendeeRole.Attendee,
+                    0,
                     this._eventFee));
                 nextWaitlistMember.MarkIsMovedToAttendees();
-            }     
+            }
         }
 
         public void ChangeNotAttendeeDecision(MemberId memberId)
@@ -212,7 +232,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
 
             this.CheckRule(new MemberCannotBeMoreThanOnceOnMeetingWaitlistRule(_waitlistMembers, memberId));
 
-            _waitlistMembers.Add(new MeetingWaitlistMember(this.Id, memberId));
+            _waitlistMembers.Add(MeetingWaitlistMember.CreateNew(this.Id, memberId));
         }
 
         public void SignOffMemberFromWaitlist(MemberId memberId)
@@ -276,10 +296,30 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
         {
             this.CheckRule(new MeetingCannotBeChangedAfterStartRule(_term));
             this.CheckRule(new OnlyActiveAttendeeCanBeRemovedFromMeetingRule(_attendees, attendeeId));
-            
+
             var attendee = this.GetActiveAttendee(attendeeId);
 
             attendee.Remove(removingPersonId, reason);
+        }
+
+        public void MarkAttendeeFeeAsPayed(MemberId memberId)
+        {
+            var attendee = GetActiveAttendee(memberId);
+
+            attendee.MarkFeeAsPayed();
+        }
+
+        public MeetingComment AddComment(MemberId authorId, string comment, MeetingGroup meetingGroup, MeetingCommentingConfiguration meetingCommentingConfiguration)
+            => MeetingComment.Create(
+                this.Id,
+                authorId,
+                comment,
+                meetingGroup,
+                meetingCommentingConfiguration);
+
+        public MeetingCommentingConfiguration CreateCommentingConfiguration()
+        {
+            return MeetingCommentingConfiguration.Create(this.Id);
         }
 
         private MeetingWaitlistMember GetActiveMemberOnWaitlist(MemberId memberId)
@@ -306,7 +346,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
         {
             if (!rsvpTerm.EndDate.HasValue || rsvpTerm.EndDate > meetingTerm.StartDate)
             {
-                _rsvpTerm = new Term(rsvpTerm.StartDate, meetingTerm.StartDate);
+                _rsvpTerm = Term.CreateNewBetweenDates(rsvpTerm.StartDate, meetingTerm.StartDate);
             }
             else
             {

@@ -7,8 +7,9 @@ namespace CompanyName.MyMeetings.BuildingBlocks.Domain
 {
     public abstract class ValueObject : IEquatable<ValueObject>
     {
-        private List<PropertyInfo> properties;
-        private List<FieldInfo> fields;
+        private List<PropertyInfo> _properties;
+
+        private List<FieldInfo> _fields;
 
         public static bool operator ==(ValueObject obj1, ValueObject obj2)
         {
@@ -18,8 +19,10 @@ namespace CompanyName.MyMeetings.BuildingBlocks.Domain
                 {
                     return true;
                 }
+
                 return false;
             }
+
             return obj1.Equals(obj2);
         }
 
@@ -35,53 +38,18 @@ namespace CompanyName.MyMeetings.BuildingBlocks.Domain
 
         public override bool Equals(object obj)
         {
-            if (obj == null || GetType() != obj.GetType()) return false;
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
 
             return GetProperties().All(p => PropertiesAreEqual(obj, p))
                 && GetFields().All(f => FieldsAreEqual(obj, f));
         }
 
-        private bool PropertiesAreEqual(object obj, PropertyInfo p)
-        {
-            return object.Equals(p.GetValue(this, null), p.GetValue(obj, null));
-        }
-
-        private bool FieldsAreEqual(object obj, FieldInfo f)
-        {
-            return object.Equals(f.GetValue(this), f.GetValue(obj));
-        }
-
-        private IEnumerable<PropertyInfo> GetProperties()
-        {
-            if (this.properties == null)
-            {
-                this.properties = GetType()
-                    .GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                    .Where(p => p.GetCustomAttribute(typeof(IgnoreMemberAttribute)) == null)
-                    .ToList();
-
-                // Not available in Core
-                // !Attribute.IsDefined(p, typeof(IgnoreMemberAttribute))).ToList();
-            }
-
-            return this.properties;
-        }
-
-        private IEnumerable<FieldInfo> GetFields()
-        {
-            if (this.fields == null)
-            {
-                this.fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                    .Where(p => p.GetCustomAttribute(typeof(IgnoreMemberAttribute)) == null)
-                    .ToList();
-            }
-
-            return this.fields;
-        }
-
         public override int GetHashCode()
         {
-            unchecked   //allow overflow
+            unchecked
             {
                 int hash = 17;
                 foreach (var prop in GetProperties())
@@ -100,13 +68,57 @@ namespace CompanyName.MyMeetings.BuildingBlocks.Domain
             }
         }
 
+        protected static void CheckRule(IBusinessRule rule)
+        {
+            if (rule.IsBroken())
+            {
+                throw new BusinessRuleValidationException(rule);
+            }
+        }
+
+        private bool PropertiesAreEqual(object obj, PropertyInfo p)
+        {
+            return object.Equals(p.GetValue(this, null), p.GetValue(obj, null));
+        }
+
+        private bool FieldsAreEqual(object obj, FieldInfo f)
+        {
+            return object.Equals(f.GetValue(this), f.GetValue(obj));
+        }
+
+        private IEnumerable<PropertyInfo> GetProperties()
+        {
+            if (this._properties == null)
+            {
+                this._properties = GetType()
+                    .GetProperties(BindingFlags.Instance | BindingFlags.Public)
+                    .Where(p => p.GetCustomAttribute(typeof(IgnoreMemberAttribute)) == null)
+                    .ToList();
+
+                // Not available in Core
+                // !Attribute.IsDefined(p, typeof(IgnoreMemberAttribute))).ToList();
+            }
+
+            return this._properties;
+        }
+
+        private IEnumerable<FieldInfo> GetFields()
+        {
+            if (this._fields == null)
+            {
+                this._fields = GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
+                    .Where(p => p.GetCustomAttribute(typeof(IgnoreMemberAttribute)) == null)
+                    .ToList();
+            }
+
+            return this._fields;
+        }
+
         private int HashValue(int seed, object value)
         {
-            var currentHash = value != null
-                ? value.GetHashCode()
-                : 0;
+            var currentHash = value?.GetHashCode() ?? 0;
 
-            return seed * 23 + currentHash;
+            return (seed * 23) + currentHash;
         }
     }
 }

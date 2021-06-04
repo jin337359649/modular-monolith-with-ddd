@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.BuildingBlocks.Infrastructure.Emails;
-using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Processing.InternalCommands;
+using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Commands;
 using CompanyName.MyMeetings.Modules.Meetings.Application.MeetingGroups.SendMeetingGroupCreatedEmail;
 using MediatR;
 
@@ -22,8 +21,8 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Application.MeetingGroups
             await _commandsScheduler.EnqueueAsync(
                 new SendMeetingGroupCreatedEmailCommand(
                     Guid.NewGuid(),
-                    notification.MeetingGroupId, 
-                    notification.CreatorId));
+                    notification.DomainEvent.MeetingGroupId,
+                    notification.DomainEvent.CreatorId));
         }
     }
 }

@@ -1,6 +1,6 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Processing;
+using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Commands;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.MeetingGroups;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Members;
@@ -8,15 +8,15 @@ using MediatR;
 
 namespace CompanyName.MyMeetings.Modules.Meetings.Application.Meetings.SignUpMemberToWaitlist
 {
-    public class SignUpMemberToWaitlistCommandHandler : ICommandHandler<SignUpMemberToWaitlistCommand>
+    internal class SignUpMemberToWaitlistCommandHandler : ICommandHandler<SignUpMemberToWaitlistCommand>
     {
         private readonly IMemberContext _memberContext;
         private readonly IMeetingRepository _meetingRepository;
         private readonly IMeetingGroupRepository _meetingGroupRepository;
 
         public SignUpMemberToWaitlistCommandHandler(
-            IMemberContext memberContext, 
-            IMeetingRepository meetingRepository, 
+            IMemberContext memberContext,
+            IMeetingRepository meetingRepository,
             IMeetingGroupRepository meetingGroupRepository)
         {
             _memberContext = memberContext;

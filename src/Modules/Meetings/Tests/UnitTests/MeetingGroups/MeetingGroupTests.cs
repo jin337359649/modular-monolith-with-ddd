@@ -10,7 +10,6 @@ using CompanyName.MyMeetings.Modules.Meetings.Domain.Members;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.SeedWork;
 using NUnit.Framework;
 
-
 namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.MeetingGroups
 {
     [TestFixture]
@@ -21,7 +20,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.MeetingGroups
         {
             var meetingGroup = CreateMeetingGroup();
 
-            var meetingGroupLocation = new MeetingGroupLocation("London", "GB");
+            var meetingGroupLocation = MeetingGroupLocation.CreateNew("London", "GB");
             meetingGroup.EditGeneralAttributes("newName", "newDescription", meetingGroupLocation);
 
             var meetingGroupGeneralAttributesEdited =
@@ -93,7 +92,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.MeetingGroups
             var meetingGroup = CreateMeetingGroup();
             DateTime dateTo = DateTime.UtcNow;
 
-            meetingGroup.UpdatePaymentInfo(dateTo);
+            meetingGroup.SetExpirationDate(dateTo);
 
             var meetingGroupPaymentInfoUpdated = AssertPublishedDomainEvent<MeetingGroupPaymentInfoUpdatedDomainEvent>(meetingGroup);
 
@@ -110,16 +109,17 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.MeetingGroups
 
             AssertBrokenRule<MeetingCanBeOrganizedOnlyByPayedGroupRule>(() =>
             {
-                meetingGroup.CreateMeeting("title",
-                    new MeetingTerm(
+                meetingGroup.CreateMeeting(
+                    "title",
+                    MeetingTerm.CreateNewBetweenDates(
                         new DateTime(2019, 1, 1, 10, 0, 0),
                         new DateTime(2019, 1, 1, 12, 0, 0)),
                     "description",
-                    new MeetingLocation("Name", "Address", "PostalCode", "City"),
+                    MeetingLocation.CreateNew("Name", "Address", "PostalCode", "City"),
                     null,
                     0,
                     Term.NoTerm,
-                    MoneyValue.Zero,
+                    MoneyValue.Undefined,
                     new List<MemberId>(),
                     creatorId);
             });
@@ -130,18 +130,19 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.MeetingGroups
         {
             var definedProposalMemberId = new MemberId(Guid.NewGuid());
             var meetingGroup = CreateMeetingGroup(definedProposalMemberId);
-            meetingGroup.UpdatePaymentInfo(DateTime.UtcNow.AddDays(1));
+            meetingGroup.SetExpirationDate(DateTime.UtcNow.AddDays(1));
 
-            var meeting = meetingGroup.CreateMeeting("title",
-                new MeetingTerm(
+            var meeting = meetingGroup.CreateMeeting(
+                "title",
+                MeetingTerm.CreateNewBetweenDates(
                     new DateTime(2019, 1, 1, 10, 0, 0),
                     new DateTime(2019, 1, 1, 12, 0, 0)),
                 "description",
-                new MeetingLocation("Name", "Address", "PostalCode", "City"),
+                MeetingLocation.CreateNew("Name", "Address", "PostalCode", "City"),
                 null,
                 0,
                 Term.NoTerm,
-                MoneyValue.Zero,
+                MoneyValue.Undefined,
                 new List<MemberId>(),
                 definedProposalMemberId);
 
@@ -153,7 +154,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.MeetingGroups
         {
             var definedProposalMemberId = new MemberId(Guid.NewGuid());
             var meetingGroup = CreateMeetingGroup(definedProposalMemberId);
-            meetingGroup.UpdatePaymentInfo(DateTime.UtcNow.AddDays(1));
+            meetingGroup.SetExpirationDate(DateTime.UtcNow.AddDays(1));
             var hostOne = new MemberId(Guid.NewGuid());
             var hostTwo = new MemberId(Guid.NewGuid());
             List<MemberId> hosts = new List<MemberId>();
@@ -162,25 +163,26 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.MeetingGroups
             meetingGroup.JoinToGroupMember(hostOne);
             meetingGroup.JoinToGroupMember(hostTwo);
 
-            var meeting = meetingGroup.CreateMeeting("title",
-                new MeetingTerm(
+            var meeting = meetingGroup.CreateMeeting(
+                "title",
+                MeetingTerm.CreateNewBetweenDates(
                     new DateTime(2019, 1, 1, 10, 0, 0),
                     new DateTime(2019, 1, 1, 12, 0, 0)),
                 "description",
-                new MeetingLocation("Name", "Address", "PostalCode", "City"),
+                MeetingLocation.CreateNew("Name", "Address", "PostalCode", "City"),
                 null,
                 0,
                 Term.NoTerm,
-                MoneyValue.Zero,
+                MoneyValue.Undefined,
                 hosts,
                 definedProposalMemberId);
 
             var meetingAttendeeAddedEvents = AssertPublishedDomainEvents<MeetingAttendeeAddedDomainEvent>(meeting);
             Assert.That(meetingAttendeeAddedEvents.Count, Is.EqualTo(2));
             Assert.That(meetingAttendeeAddedEvents[0].AttendeeId, Is.EqualTo(hostOne));
-            Assert.That(meetingAttendeeAddedEvents[0].Role, Is.EqualTo(MeetingAttendeeRole.Host));
+            Assert.That(meetingAttendeeAddedEvents[0].Role, Is.EqualTo(MeetingAttendeeRole.Host.Value));
             Assert.That(meetingAttendeeAddedEvents[1].AttendeeId, Is.EqualTo(hostTwo));
-            Assert.That(meetingAttendeeAddedEvents[1].Role, Is.EqualTo(MeetingAttendeeRole.Host));
+            Assert.That(meetingAttendeeAddedEvents[1].Role, Is.EqualTo(MeetingAttendeeRole.Host.Value));
         }
 
         [Test]
@@ -188,7 +190,7 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.MeetingGroups
         {
             var definedProposalMemberId = new MemberId(Guid.NewGuid());
             var meetingGroup = CreateMeetingGroup(definedProposalMemberId);
-            meetingGroup.UpdatePaymentInfo(DateTime.UtcNow.AddDays(1));
+            meetingGroup.SetExpirationDate(DateTime.UtcNow.AddDays(1));
             var hostOne = new MemberId(Guid.NewGuid());
             var hostTwo = new MemberId(Guid.NewGuid());
             List<MemberId> hosts = new List<MemberId>();
@@ -197,16 +199,17 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.MeetingGroups
 
             AssertBrokenRule<MeetingHostMustBeAMeetingGroupMemberRule>(() =>
             {
-                meetingGroup.CreateMeeting("title",
-                    new MeetingTerm(
+                meetingGroup.CreateMeeting(
+                    "title",
+                    MeetingTerm.CreateNewBetweenDates(
                         new DateTime(2019, 1, 1, 10, 0, 0),
                         new DateTime(2019, 1, 1, 12, 0, 0)),
                     "description",
-                    new MeetingLocation("Name", "Address", "PostalCode", "City"),
+                    MeetingLocation.CreateNew("Name", "Address", "PostalCode", "City"),
                     null,
                     0,
                     Term.NoTerm,
-                    MoneyValue.Zero,
+                    MoneyValue.Undefined,
                     hosts,
                     definedProposalMemberId);
             });
@@ -218,20 +221,21 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.MeetingGroups
             var definedProposalMemberId = new MemberId(Guid.NewGuid());
             var creatorId = new MemberId(Guid.NewGuid());
             var meetingGroup = CreateMeetingGroup(definedProposalMemberId);
-            meetingGroup.UpdatePaymentInfo(DateTime.UtcNow.AddDays(1));
+            meetingGroup.SetExpirationDate(DateTime.UtcNow.AddDays(1));
 
             AssertBrokenRule<MeetingHostMustBeAMeetingGroupMemberRule>(() =>
             {
-                meetingGroup.CreateMeeting("title",
-                    new MeetingTerm(
+                meetingGroup.CreateMeeting(
+                    "title",
+                    MeetingTerm.CreateNewBetweenDates(
                         new DateTime(2019, 1, 1, 10, 0, 0),
                         new DateTime(2019, 1, 1, 12, 0, 0)),
                     "description",
-                    new MeetingLocation("Name", "Address", "PostalCode", "City"),
+                    MeetingLocation.CreateNew("Name", "Address", "PostalCode", "City"),
                     null,
                     0,
                     Term.NoTerm,
-                    MoneyValue.Zero,
+                    MoneyValue.Undefined,
                     new List<MemberId>(),
                     creatorId);
             });
@@ -241,8 +245,10 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.UnitTests.MeetingGroups
         {
             var proposalMemberId = definedProposalMemberId ?? new MemberId(Guid.NewGuid());
             var meetingProposal = MeetingGroupProposal.ProposeNew(
-                "name", "description",
-                new MeetingGroupLocation("Warsaw", "PL"), proposalMemberId);
+                "name",
+                "description",
+                MeetingGroupLocation.CreateNew("Warsaw", "PL"),
+                proposalMemberId);
 
             meetingProposal.Accept();
 

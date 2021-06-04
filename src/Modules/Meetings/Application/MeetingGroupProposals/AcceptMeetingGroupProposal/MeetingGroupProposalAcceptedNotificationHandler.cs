@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Processing.InternalCommands;
+using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Commands;
 using CompanyName.MyMeetings.Modules.Meetings.Application.MeetingGroups.CreateNewMeetingGroup;
 using MediatR;
 
@@ -19,7 +19,9 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Application.MeetingGroupPropos
         public async Task Handle(MeetingGroupProposalAcceptedNotification notification, CancellationToken cancellationToken)
         {
             await _commandsScheduler.EnqueueAsync(
-                new CreateNewMeetingGroupCommand(Guid.NewGuid(), notification.MeetingGroupProposalId));
+                new CreateNewMeetingGroupCommand(
+                    Guid.NewGuid(),
+                    notification.DomainEvent.MeetingGroupProposalId));
         }
     }
 }

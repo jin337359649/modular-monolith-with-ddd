@@ -1,6 +1,5 @@
 ﻿using System;
-using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Processing.InternalCommands;
-using CompanyName.MyMeetings.Modules.Meetings.Application.Contracts;
+using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Commands;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings;
 using CompanyName.MyMeetings.Modules.Meetings.Domain.Members;
 using Newtonsoft.Json;
@@ -14,7 +13,8 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Application.Meetings.SendMeeti
         internal MeetingId MeetingId { get; }
 
         [JsonConstructor]
-        internal SendMeetingAttendeeAddedEmailCommand(Guid id, MemberId attendeeId, MeetingId meetingId) : base(id)
+        internal SendMeetingAttendeeAddedEmailCommand(Guid id, MemberId attendeeId, MeetingId meetingId)
+            : base(id)
         {
             AttendeeId = attendeeId;
             MeetingId = meetingId;

@@ -1,6 +1,6 @@
-﻿using CompanyName.MyMeetings.BuildingBlocks.Infrastructure.SeedWork;
+﻿using System;
+using CompanyName.MyMeetings.BuildingBlocks.Application.Events;
 using CompanyName.MyMeetings.Modules.UserAccess.Domain.UserRegistrations.Events;
-using CompanyName.MyMeetings.Modules.UserAccess.Domain.Users;
 using Newtonsoft.Json;
 
 namespace CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistrations.RegisterNewUser
@@ -8,7 +8,8 @@ namespace CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistration
     public class NewUserRegisteredNotification : DomainNotificationBase<NewUserRegisteredDomainEvent>
     {
         [JsonConstructor]
-        public NewUserRegisteredNotification(NewUserRegisteredDomainEvent domainEvent) : base(domainEvent)
+        public NewUserRegisteredNotification(NewUserRegisteredDomainEvent domainEvent, Guid id)
+            : base(domainEvent, id)
         {
         }
     }

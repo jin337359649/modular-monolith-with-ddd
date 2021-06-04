@@ -1,9 +1,10 @@
 ﻿using CompanyName.MyMeetings.BuildingBlocks.Domain;
+
 namespace CompanyName.MyMeetings.Modules.Administration.Domain.MeetingGroupProposals
 {
     public class MeetingGroupLocation : ValueObject
     {
-        public MeetingGroupLocation(string city, string countryCode)
+        private MeetingGroupLocation(string city, string countryCode)
         {
             City = city;
             CountryCode = countryCode;
@@ -12,5 +13,10 @@ namespace CompanyName.MyMeetings.Modules.Administration.Domain.MeetingGroupPropo
         public string City { get; }
 
         public string CountryCode { get; }
+
+        public static MeetingGroupLocation Create(string city, string countryCode)
+        {
+            return new MeetingGroupLocation(city, countryCode);
+        }
     }
 }

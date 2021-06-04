@@ -1,25 +1,13 @@
 ﻿using System;
-using CompanyName.MyMeetings.Modules.Administration.Application.Configuration.Processing.InternalCommands;
+using CompanyName.MyMeetings.Modules.Administration.Application.Configuration;
+using CompanyName.MyMeetings.Modules.Administration.Application.Configuration.Commands;
+using CompanyName.MyMeetings.Modules.Administration.Application.Contracts;
 using Newtonsoft.Json;
 
 namespace CompanyName.MyMeetings.Modules.Administration.Application.MeetingGroupProposals.RequestMeetingGroupProposalVerification
 {
-    internal class RequestMeetingGroupProposalVerificationCommand : InternalCommandBase
+    public class RequestMeetingGroupProposalVerificationCommand : InternalCommandBase<Guid>
     {
-        public Guid MeetingGroupProposalId { get;  }
-
-        public string Name { get; }
-
-        public string Description { get;  }
-
-        public string LocationCity { get; }
-
-        public string LocationCountryCode { get; }
-
-        public Guid ProposalUserId { get; }
-
-        public DateTime ProposalDate { get; }
-
         [JsonConstructor]
         public RequestMeetingGroupProposalVerificationCommand(
             Guid id,
@@ -29,7 +17,8 @@ namespace CompanyName.MyMeetings.Modules.Administration.Application.MeetingGroup
             string locationCity,
             string locationCountryCode,
             Guid proposalUserId,
-            DateTime proposalDate) : base(id)
+            DateTime proposalDate)
+            : base(id)
         {
             this.MeetingGroupProposalId = meetingGroupProposalId;
             this.Name = name;
@@ -39,5 +28,19 @@ namespace CompanyName.MyMeetings.Modules.Administration.Application.MeetingGroup
             this.ProposalUserId = proposalUserId;
             this.ProposalDate = proposalDate;
         }
+
+        public Guid MeetingGroupProposalId { get; }
+
+        public string Name { get; }
+
+        public string Description { get; }
+
+        public string LocationCity { get; }
+
+        public string LocationCountryCode { get; }
+
+        public Guid ProposalUserId { get; }
+
+        public DateTime ProposalDate { get; }
     }
 }

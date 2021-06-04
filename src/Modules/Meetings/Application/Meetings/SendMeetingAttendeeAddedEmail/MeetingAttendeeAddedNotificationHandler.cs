@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Processing.InternalCommands;
+using CompanyName.MyMeetings.Modules.Meetings.Application.Configuration.Commands;
 using MediatR;
 
 namespace CompanyName.MyMeetings.Modules.Meetings.Application.Meetings.SendMeetingAttendeeAddedEmail
@@ -20,8 +20,8 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Application.Meetings.SendMeeti
             await _commandsScheduler.EnqueueAsync(
                 new SendMeetingAttendeeAddedEmailCommand(
                     Guid.NewGuid(),
-                    notification.AttendeeId, 
-                    notification.MeetingId));
+                    notification.DomainEvent.AttendeeId,
+                    notification.DomainEvent.MeetingId));
         }
     }
 }

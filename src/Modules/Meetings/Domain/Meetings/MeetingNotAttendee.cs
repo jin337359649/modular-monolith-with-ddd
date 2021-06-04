@@ -21,16 +21,20 @@ namespace CompanyName.MyMeetings.Modules.Meetings.Domain.Meetings
 
         private MeetingNotAttendee()
         {
-            
         }
 
-        internal MeetingNotAttendee(MeetingId meetingId, MemberId memberId)
+        private MeetingNotAttendee(MeetingId meetingId, MemberId memberId)
         {
             this.MemberId = memberId;
             this.MeetingId = meetingId;
             _decisionDate = DateTime.UtcNow;
 
             this.AddDomainEvent(new MeetingNotAttendeeAddedDomainEvent(this.MeetingId, this.MemberId));
+        }
+
+        internal static MeetingNotAttendee CreateNew(MeetingId meetingId, MemberId memberId)
+        {
+            return new MeetingNotAttendee(meetingId, memberId);
         }
 
         internal bool IsActiveNotAttendee(MemberId memberId)

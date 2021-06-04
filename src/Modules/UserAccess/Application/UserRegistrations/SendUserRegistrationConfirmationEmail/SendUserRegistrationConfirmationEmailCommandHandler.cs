@@ -1,25 +1,32 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
-using CompanyName.MyMeetings.BuildingBlocks.Infrastructure.Emails;
-using CompanyName.MyMeetings.Modules.UserAccess.Application.Configuration.Processing;
+using CompanyName.MyMeetings.BuildingBlocks.Application;
+using CompanyName.MyMeetings.BuildingBlocks.Application.Emails;
+using CompanyName.MyMeetings.Modules.UserAccess.Application.Configuration.Commands;
 using MediatR;
 
 namespace CompanyName.MyMeetings.Modules.UserAccess.Application.UserRegistrations.SendUserRegistrationConfirmationEmail
 {
     internal class SendUserRegistrationConfirmationEmailCommandHandler : ICommandHandler<SendUserRegistrationConfirmationEmailCommand>
     {
-        private IEmailSender _emailSender;
+        private readonly IEmailSender _emailSender;
 
-        public SendUserRegistrationConfirmationEmailCommandHandler(IEmailSender emailSender)
+        public SendUserRegistrationConfirmationEmailCommandHandler(
+            IEmailSender emailSender)
         {
             _emailSender = emailSender;
         }
 
-        public Task<Unit> Handle(SendUserRegistrationConfirmationEmailCommand request, CancellationToken cancellationToken)
+        public Task<Unit> Handle(SendUserRegistrationConfirmationEmailCommand command, CancellationToken cancellationToken)
         {
-            var emailMessage = new EmailMessage(request.Email, "MyMeetings - Please confirm your registration",
-                "This should be link to confirmation page. For now, please execute HTTP request " +
-                $"PATCH http://localhost:5000/userAccess/userRegistrations/{request.UserRegistrationId.Value}/confirm");
+            string link = $"<a href=\"{command.ConfirmLink}{command.UserRegistrationId.Value}\">link</a>";
+
+            string content = $"Welcome to MyMeetings application! Please confirm your registration using this {link}.";
+
+            var emailMessage = new EmailMessage(
+                command.Email,
+                "MyMeetings - Please confirm your registration",
+                content);
 
             _emailSender.SendEmail(emailMessage);
 
